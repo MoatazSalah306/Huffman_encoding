@@ -1,4 +1,5 @@
 import heapq
+import ast
 from collections import Counter
 
 class HuffmanNode:
@@ -10,7 +11,7 @@ class HuffmanNode:
         self.right = None
 
     def __lt__(self, other):
-        return self.freq < other.freq  # Min-heap comparison
+        return self.freq < other.freq  # For min-heap comparison
 
 def build_huffman_tree(text):
     freq = Counter(text)
@@ -27,7 +28,10 @@ def build_huffman_tree(text):
 
     return heap[0]
 
-def generate_huffman_codes(node, prefix="", code_map={}):
+def generate_huffman_codes(node, prefix="", code_map=None):
+    if code_map is None:
+        code_map = {}
+
     if node:
         if node.char is not None:
             code_map[node.char] = prefix
@@ -72,11 +76,27 @@ def main_menu():
             print(f"Huffman Codes: {codes}")
 
         elif choice == "2":
-            if not encoded_text or not codes:
-                print("You must encode text first before decoding.")
+            print("\n--- Decode Options ---")
+            use_existing = input("Use previously encoded data? (y/n): ").lower().strip()
+
+            if use_existing == "y":
+                if encoded_text and codes:
+                    decoded_text = huffman_decode(encoded_text, codes)
+                    print(f"\nDecoded Text: {decoded_text}")
+                else:
+                    print("No previously encoded data found. Please encode text first or decode manually.")
             else:
-                decoded_text = huffman_decode(encoded_text, codes)
-                print(f"\nDecoded Text: {decoded_text}")
+                binary_input = input("Enter binary encoded string: ").strip()
+                codes_input = input("Enter Huffman code map (as Python dict, e.g., {'a': '0', 'b': '10'}): ").strip()
+
+                try:
+                    codes_dict = ast.literal_eval(codes_input)
+                    if not isinstance(codes_dict, dict):
+                        raise ValueError("Code map must be a dictionary.")
+                    decoded_text = huffman_decode(binary_input, codes_dict)
+                    print(f"\nDecoded Text: {decoded_text}")
+                except Exception as e:
+                    print(f"Invalid input. Error: {e}")
 
         elif choice == "3":
             print("Exiting program.")
